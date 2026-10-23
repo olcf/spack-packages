@@ -69,6 +69,13 @@ class Amdscalapack(ScalapackBase):
                 "1,23d",
                 join_path(self.stage.source_path, "FRAMEWORK", "SL_Context_fortran_include.h"),
             )
+        # fix builds with 'mpifort` compiler wrapper
+        filter_file(
+            '"${CMAKE_Fortran_COMPILER}" MATCHES "ifort"',
+            '"${CMAKE_Fortran_COMPILER}" STREQUAL "ifort"',
+            "CMakeLists.txt",
+            string=True,
+        )
 
     def url_for_version(self, version):
         vers = "https://github.com/amd/{0}/archive/{1}.tar.gz"
