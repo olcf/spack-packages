@@ -28,6 +28,8 @@ class Kdreg2(MakefilePackage):
         commit="2e1e7771e5bb7c8fc11e7e59cb1a4972595f1b30",
     )
 
+    variant("kernel-module", default=False, description="build the kernel module")
+
     depends_on("c", type="build")
 
     requires("%c=gcc")
@@ -35,7 +37,8 @@ class Kdreg2(MakefilePackage):
     requires("platform=linux", msg="only available on linux")
 
     def build(self, spec, prefix):
-        make(f"CC={self.compiler.cc}", "modules", "build_info")
+        if spec.satisfies("+kernel-module"):
+            make(f"CC={self.compiler.cc}", "modules", "build_info")
 
     def install(self, spec, prefix):
         src: Path = Path(self.stage.source_path)
@@ -48,8 +51,9 @@ class Kdreg2(MakefilePackage):
         force_symlink("../kdreg2.h", str(dest / "include/linux/kdreg2.h"))
 
         # module
-        mkdirp(str(dest / "lib/modules"))
-        install(str(src / "kdreg2.ko"), str(dest / "lib/modules"))
+        if spec.satisfies("+kernel-module"):
+            mkdirp(str(dest / "lib/modules"))
+            install(str(src / "kdreg2.ko"), str(dest / "lib/modules"))
 
     @property
     def headers(self):
