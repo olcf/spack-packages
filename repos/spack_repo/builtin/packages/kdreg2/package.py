@@ -41,19 +41,16 @@ class Kdreg2(MakefilePackage):
             make(f"CC={self.compiler.cc}", "modules", "build_info")
 
     def install(self, spec, prefix):
-        src: Path = Path(self.stage.source_path)
-        dest: Path = Path(prefix)
-
         # headers
-        install_tree(str(src / "include"), str(dest / "include"))
+        install_tree(self.stage.source_path + "/include", prefix.include)
         # this is for Libfabric which expects 'linux/kdreg2.h'
-        mkdirp(str(dest / "include/linux"))
-        force_symlink("../kdreg2.h", str(dest / "include/linux/kdreg2.h"))
+        mkdirp(prefix.include.linux)
+        force_symlink("../kdreg2.h", prefix.include.linux.join("kdreg2.h"))
 
         # module
         if spec.satisfies("+kernel-module"):
-            mkdirp(str(dest / "lib/modules"))
-            install(str(src / "kdreg2.ko"), str(dest / "lib/modules"))
+            mkdirp(prefix.lib.modules)
+            install(self.stage.source_path + "/kdreg2.ko", prefix.lib.modules)
 
     @property
     def headers(self):
