@@ -63,7 +63,7 @@ class Amdscalapack(ScalapackBase):
         if self.spec.satisfies("%clang@16:"):
             filter_file("-cpp", "", "CMakeLists.txt")
         # remove the C-style comments in header file that cause issues with flang
-        if self.spec.satisfies("@4.2: %clang@18:"):
+        if self.spec.satisfies("@4.2: %clang@18:") or self.spec.satisfies("@4.2: %llvm-amdgpu@7.13:"):
             which("sed", required=True)(
                 "-i",
                 "1,23d",
@@ -100,11 +100,11 @@ class Amdscalapack(ScalapackBase):
         if spec.satisfies("%gcc@10:"):
             args.extend(["-DCMAKE_Fortran_FLAGS={0}".format("-fallow-argument-mismatch")])
 
-        if spec.satisfies("%clang@16:"):
+        if spec.satisfies("%clang@16:") or spec.satisfies("%llvm-amdgpu@7.13:"):
             flags = "-cpp -fno-implicit-none"
             if spec.satisfies("%clang@18"):
                 flags += " -flang-experimental-polymorphism"
-            if spec.satisfies("%clang@18:"):
+            if spec.satisfies("%clang@18:") or spec.satisfies("%llvm-amdgpu@7.13:"):
                 flags += " -I{0}".format(join_path(self.stage.source_path, "FRAMEWORK"))
             args.extend(["-DCMAKE_Fortran_FLAGS={0}".format(flags)])
 
