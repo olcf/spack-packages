@@ -101,6 +101,52 @@ class AoclDa(CMakePackage):
     def setup_run_environment(self, env: EnvironmentModifications) -> None:
         env.prepend_path("PYTHONPATH", join_path(self.prefix, "python_package"))
 
+    def patch(self):
+        if self.spec["fortran"].satisfies("llvm-amdgpu@7.13:"):
+            filter_file(
+                "set(CMAKE_Fortran_FLAGS -mavx2)",
+                'set(CMAKE_Fortran_FLAGS "")',
+                "external/RALFit/CMakeLists.txt",
+                string=True,
+            )
+            filter_file(
+                "set(CMAKE_Fortran_FLAGS -cpp -Wno-unused-parameter -mavx2)",
+                "set(CMAKE_Fortran_FLAGS -cpp)",
+                "external/Lbfgsb.3.0/CMakeLists.txt",
+                string=True,
+            )
+
+            filter_file(
+                "list(APPEND CMAKE_Fortran_FLAGS -Qunused-arguments -Wno-unused-command-line-argument -Wno-unknown-warning-option)",
+                "",
+                "external/RALFit/CMakeLists.txt",
+                "external/Lbfgsb.3.0/CMakeLists.txt",
+                string=True,
+            )
+
+            filter_file("-mavx2;", "", "CMakeLists.txt", string=True)
+            filter_file("-mavx2;", "", "source/CMakeLists.txt", string=True)
+
+            for flag in [
+                "-Wno-compare-reals",
+                "-Wno-unused-dummy-argument",
+                "-Wno-maybe-uninitialized",
+                "-Wno-unused-function",
+                "-Wno-unused-label",
+                "-Wno-character-truncation",
+            ]:
+                filter_file(flag, "", "cmake/Suppressions_external.cmake", string=True)
+
+            for path in [
+                "CMakeLists.txt",
+                "source/CMakeLists.txt",
+                "external/Lbfgsb.3.0/CMakeLists.txt",
+                "tools/CMakeLists_tests.cmake",
+                "tools/CMakeLists_examples.cmake",
+            ]:
+                filter_file('set(FORTRAN_RUNTIME "flang")', "", path, string=True)
+                filter_file('link_libraries("flang")', "", path, string=True)
+
     def cmake_args(self):
         """Runs ``cmake`` in the build directory"""
         spec = self.spec
