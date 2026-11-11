@@ -159,7 +159,8 @@ class Scorep(AutotoolsPackage):
     # has not been a variant, I'm just cutting over now.
     # --wrwilliams JUN2026
     depends_on("rocprofiler-dev", when="@:9+hip")
-    depends_on("rocm-smi-lib", when="@:9+hip")
+    depends_on("rocm-smi-lib", when="@8:9+hip")
+    depends_on("roctracer-dev", when="@8:9+hip")
     depends_on("rocprofiler-sdk", when="@10:+hip")
     # Score-P requires a case-sensitive file system, and therefore
     # does not work on macOS
@@ -234,6 +235,10 @@ class Scorep(AutotoolsPackage):
                 "rocm", activation_value=lambda _: self.spec["hip"].prefix, variant="hip"
             )
         )
+        if spec.satisfies("@8:9+hip"):
+            config_args.append(f"--with-libroctracer64={spec['roctracer-dev'].prefix}")
+            config_args.append(f"--with-librocm_smi64={spec['rocm-smi-lib'].prefix}")
+
         config_args.extend(
             self.with_or_without(
                 "libgotcha",
