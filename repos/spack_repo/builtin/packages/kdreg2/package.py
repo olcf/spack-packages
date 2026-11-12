@@ -28,9 +28,9 @@ class Kdreg2(MakefilePackage):
 
     variant("kernel-module", default=False, description="build the kernel module")
 
-    depends_on("c", type="build")
-
-    requires("%c=gcc")
+    with when("+kernel-module"):
+        depends_on("c", type="build")
+        requires("%c=gcc")
 
     requires("platform=linux", msg="only available on linux")
 
